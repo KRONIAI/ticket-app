@@ -13,15 +13,16 @@ import { getSLAStatus, getSLABadgeColor } from '@/lib/sla'
 import { TicketChat } from '@/components/tickets/ticket-chat'
 
 interface UserTicketDetailProps {
-  params: { 
+  params: Promise<{ 
     orgSlug: string
     ticketId: string 
-  }
+  }>
 }
 
 export default async function UserTicketDetail({ params }: UserTicketDetailProps) {
   const user = await requireAuth()
-  const currentOrg = getCurrentOrganization(user, params.orgSlug)
+  const { orgSlug, ticketId } = await params
+  const currentOrg = getCurrentOrganization(user, orgSlug)
   
   if (!currentOrg) {
     notFound()
@@ -39,7 +40,7 @@ export default async function UserTicketDetail({ params }: UserTicketDetailProps
       service:services(name, key, description),
       attachments(*)
     `)
-    .eq('id', params.ticketId)
+    .eq('id', ticketId)
     .eq('org_id', currentOrg.org_id)
     .eq('created_by', user.profile.id) // Solo i propri ticket
     .single()
@@ -55,7 +56,7 @@ export default async function UserTicketDetail({ params }: UserTicketDetailProps
       *,
       author:profiles(full_name, email, avatar_url)
     `)
-    .eq('ticket_id', params.ticketId)
+    .eq('ticket_id', ticketId)
     .eq('is_internal', false) // Solo messaggi pubblici per gli utenti
     .order('created_at', { ascending: true })
 
@@ -101,7 +102,7 @@ export default async function UserTicketDetail({ params }: UserTicketDetailProps
       {/* Header */}
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/app/${params.orgSlug}/tickets`}>
+          <Link href={`/app/${orgSlug}/tickets`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Torna alle Richieste
           </Link>
@@ -162,7 +163,7 @@ export default async function UserTicketDetail({ params }: UserTicketDetailProps
                 <div>
                   <h4 className="font-medium mb-2">Tag</h4>
                   <div className="flex flex-wrap gap-2">
-                    {ticket.tags.map((tag) => (
+                    {ticket.tags.map((tag: string) => (
                       <Badge key={tag} variant="outline">
                         <Tag className="mr-1 h-3 w-3" />
                         {tag}
@@ -176,7 +177,7 @@ export default async function UserTicketDetail({ params }: UserTicketDetailProps
                 <div>
                   <h4 className="font-medium mb-2">Allegati</h4>
                   <div className="space-y-2">
-                    {ticket.attachments.map((attachment) => (
+                    {ticket.attachments.map((attachment: any) => (
                       <div key={attachment.id} className="flex items-center space-x-2 text-sm">
                         <Paperclip className="h-4 w-4 text-muted-foreground" />
                         <span>{attachment.file_name}</span>

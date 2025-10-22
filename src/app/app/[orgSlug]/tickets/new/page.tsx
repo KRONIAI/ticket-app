@@ -22,10 +22,11 @@ interface Service {
 }
 
 interface NewTicketPageProps {
-  params: { orgSlug: string }
+  params: Promise<{ orgSlug: string }>
 }
 
-export default function NewTicketPage({ params }: NewTicketPageProps) {
+export default async function NewTicketPage({ params }: NewTicketPageProps) {
+  const { orgSlug } = await params
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
@@ -49,7 +50,7 @@ export default function NewTicketPage({ params }: NewTicketPageProps) {
         .select(`
           service:services(*)
         `)
-        .eq('org_id', params.orgSlug) // Assumendo che orgSlug sia l'ID per semplicità
+        .eq('org_id', orgSlug) // Assumendo che orgSlug sia l'ID per semplicità
         .eq('is_active', true)
 
       if (orgServices) {
@@ -69,7 +70,7 @@ export default function NewTicketPage({ params }: NewTicketPageProps) {
     }
 
     loadServices()
-  }, [params.orgSlug, searchParams, supabase])
+  }, [orgSlug, searchParams, supabase])
 
   const handleServiceChange = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId)
@@ -113,7 +114,7 @@ export default function NewTicketPage({ params }: NewTicketPageProps) {
       const { data: org } = await supabase
         .from('organizations')
         .select('id')
-        .eq('slug', params.orgSlug)
+        .eq('slug', orgSlug)
         .single()
 
       if (!org) throw new Error('Organizzazione non trovata')
@@ -145,7 +146,7 @@ export default function NewTicketPage({ params }: NewTicketPageProps) {
       if (error) throw error
 
       // Reindirizza al ticket creato
-      router.push(`/app/${params.orgSlug}/tickets/${ticket.id}`)
+      router.push(`/app/${orgSlug}/tickets/${ticket.id}`)
     } catch (error) {
       console.error('Errore nella creazione del ticket:', error)
       // TODO: Mostra errore all'utente
@@ -279,7 +280,7 @@ export default function NewTicketPage({ params }: NewTicketPageProps) {
       {/* Header */}
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/app/${params.orgSlug}`}>
+          <Link href={`/app/${orgSlug}`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Torna alla Dashboard
           </Link>
@@ -376,7 +377,7 @@ export default function NewTicketPage({ params }: NewTicketPageProps) {
             {/* Azioni */}
             <div className="flex justify-end space-x-4 pt-6">
               <Button type="button" variant="outline" asChild>
-                <Link href={`/app/${params.orgSlug}`}>
+                <Link href={`/app/${orgSlug}`}>
                   Annulla
                 </Link>
               </Button>
