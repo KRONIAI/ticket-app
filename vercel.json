@@ -4,12 +4,6 @@
       "maxDuration": 30
     }
   },
-  "crons": [
-    {
-      "path": "/api/cron/sla-check",
-      "schedule": "0 */2 * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
