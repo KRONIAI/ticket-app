@@ -5,12 +5,13 @@ import { notFound } from 'next/navigation'
 
 interface AdminLayoutProps {
   children: React.ReactNode
-  params: { orgSlug: string }
+  params: Promise<{ orgSlug: string }>
 }
 
 export default async function AdminLayout({ children, params }: AdminLayoutProps) {
   const user = await requireAdminOrSuperAdmin()
-  const currentOrg = getCurrentOrganization(user, params.orgSlug)
+  const { orgSlug } = await params
+  const currentOrg = getCurrentOrganization(user, orgSlug)
   
   if (!currentOrg) {
     notFound()
@@ -18,9 +19,9 @@ export default async function AdminLayout({ children, params }: AdminLayoutProps
 
   return (
     <div className="min-h-screen bg-background">
-      <MainNav user={user} currentOrgSlug={params.orgSlug} />
+      <MainNav user={user} currentOrgSlug={orgSlug} />
       <div className="flex">
-        <Sidebar user={user} currentOrgSlug={params.orgSlug} />
+        <Sidebar user={user} currentOrgSlug={orgSlug} />
         <main className="flex-1 p-6">
           {children}
         </main>

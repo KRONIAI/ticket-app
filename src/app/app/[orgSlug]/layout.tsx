@@ -4,12 +4,13 @@ import { notFound } from 'next/navigation'
 
 interface UserAppLayoutProps {
   children: React.ReactNode
-  params: { orgSlug: string }
+  params: Promise<{ orgSlug: string }>
 }
 
 export default async function UserAppLayout({ children, params }: UserAppLayoutProps) {
   const user = await requireAuth()
-  const currentOrg = getCurrentOrganization(user, params.orgSlug)
+  const { orgSlug } = await params
+  const currentOrg = getCurrentOrganization(user, orgSlug)
   
   if (!currentOrg) {
     notFound()
@@ -17,7 +18,7 @@ export default async function UserAppLayout({ children, params }: UserAppLayoutP
 
   return (
     <div className="min-h-screen bg-background">
-      <MainNav user={user} currentOrgSlug={params.orgSlug} />
+      <MainNav user={user} currentOrgSlug={orgSlug} />
       <main className="container mx-auto px-4 py-6">
         {children}
       </main>

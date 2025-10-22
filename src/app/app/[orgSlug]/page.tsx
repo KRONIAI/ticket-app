@@ -10,12 +10,13 @@ import { format } from 'date-fns'
 import { it } from 'date-fns/locale'
 
 interface UserDashboardProps {
-  params: { orgSlug: string }
+  params: Promise<{ orgSlug: string }>
 }
 
 export default async function UserDashboard({ params }: UserDashboardProps) {
   const user = await requireAuth()
-  const currentOrg = getCurrentOrganization(user, params.orgSlug)
+  const { orgSlug } = await params
+  const currentOrg = getCurrentOrganization(user, orgSlug)
   
   if (!currentOrg) {
     notFound()
@@ -178,7 +179,7 @@ export default async function UserDashboard({ params }: UserDashboardProps) {
                       </p>
                     )}
                     <Button asChild className="w-full">
-                      <Link href={`/app/${params.orgSlug}/tickets/new?service=${orgService.service.id}`}>
+                      <Link href={`/app/${orgSlug}/tickets/new?service=${orgService.service.id}`}>
                         <Plus className="mr-2 h-4 w-4" />
                         Crea Richiesta
                       </Link>
@@ -212,7 +213,7 @@ export default async function UserDashboard({ params }: UserDashboardProps) {
               </CardDescription>
             </div>
             <Button variant="outline" asChild>
-              <Link href={`/app/${params.orgSlug}/tickets`}>
+              <Link href={`/app/${orgSlug}/tickets`}>
                 Vedi Tutte
               </Link>
             </Button>
@@ -224,7 +225,7 @@ export default async function UserDashboard({ params }: UserDashboardProps) {
               <div key={ticket.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="space-y-1">
                   <Link 
-                    href={`/app/${params.orgSlug}/tickets/${ticket.id}`}
+                    href={`/app/${orgSlug}/tickets/${ticket.id}`}
                     className="font-medium hover:underline"
                   >
                     {ticket.title}
@@ -261,7 +262,7 @@ export default async function UserDashboard({ params }: UserDashboardProps) {
                 Inizia creando la tua prima richiesta utilizzando uno dei servizi disponibili.
               </p>
               <Button asChild>
-                <Link href={`/app/${params.orgSlug}/tickets/new`}>
+                <Link href={`/app/${orgSlug}/tickets/new`}>
                   <Plus className="mr-2 h-4 w-4" />
                   Crea Prima Richiesta
                 </Link>

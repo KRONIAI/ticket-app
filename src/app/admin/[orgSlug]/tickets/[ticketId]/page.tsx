@@ -13,15 +13,16 @@ import { getSLAStatus, getSLABadgeColor } from '@/lib/sla'
 import { TicketChat } from '@/components/tickets/ticket-chat'
 
 interface TicketDetailProps {
-  params: { 
+  params: Promise<{ 
     orgSlug: string
     ticketId: string 
-  }
+  }>
 }
 
 export default async function TicketDetail({ params }: TicketDetailProps) {
   const user = await requireAdminOrSuperAdmin()
-  const currentOrg = getCurrentOrganization(user, params.orgSlug)
+  const { orgSlug, ticketId } = await params
+  const currentOrg = getCurrentOrganization(user, orgSlug)
   
   if (!currentOrg) {
     notFound()
@@ -39,7 +40,7 @@ export default async function TicketDetail({ params }: TicketDetailProps) {
       service:services(name, key, description),
       attachments(*)
     `)
-    .eq('id', params.ticketId)
+    .eq('id', ticketId)
     .eq('org_id', currentOrg.org_id)
     .single()
 
@@ -54,7 +55,7 @@ export default async function TicketDetail({ params }: TicketDetailProps) {
       *,
       author:profiles(full_name, email, avatar_url)
     `)
-    .eq('ticket_id', params.ticketId)
+    .eq('ticket_id', ticketId)
     .order('created_at', { ascending: true })
 
   const getStatusBadge = (status: string) => {
@@ -96,7 +97,7 @@ export default async function TicketDetail({ params }: TicketDetailProps) {
       {/* Header */}
       <div className="flex items-center space-x-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/admin/${params.orgSlug}/tickets`}>
+          <Link href={`/admin/${orgSlug}/tickets`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Torna ai Ticket
           </Link>
@@ -114,7 +115,7 @@ export default async function TicketDetail({ params }: TicketDetailProps) {
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" asChild>
-            <Link href={`/admin/${params.orgSlug}/tickets/${ticket.id}/edit`}>
+            <Link href={`/admin/${orgSlug}/tickets/${ticket.id}/edit`}>
               <Edit className="mr-2 h-4 w-4" />
               Modifica
             </Link>
@@ -158,7 +159,7 @@ export default async function TicketDetail({ params }: TicketDetailProps) {
                 <div>
                   <h4 className="font-medium mb-2">Tag</h4>
                   <div className="flex flex-wrap gap-2">
-                    {ticket.tags.map((tag) => (
+                    {ticket.tags.map((tag: string) => (
                       <Badge key={tag} variant="outline">
                         <Tag className="mr-1 h-3 w-3" />
                         {tag}
@@ -172,7 +173,7 @@ export default async function TicketDetail({ params }: TicketDetailProps) {
                 <div>
                   <h4 className="font-medium mb-2">Allegati</h4>
                   <div className="space-y-2">
-                    {ticket.attachments.map((attachment) => (
+                    {ticket.attachments.map((attachment: any) => (
                       <div key={attachment.id} className="flex items-center space-x-2 text-sm">
                         <Paperclip className="h-4 w-4 text-muted-foreground" />
                         <span>{attachment.file_name}</span>

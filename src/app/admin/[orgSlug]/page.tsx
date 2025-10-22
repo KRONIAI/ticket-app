@@ -9,12 +9,13 @@ import { notFound } from 'next/navigation'
 import { getSLAStatus, getSLABadgeColor } from '@/lib/sla'
 
 interface AdminDashboardProps {
-  params: { orgSlug: string }
+  params: Promise<{ orgSlug: string }>
 }
 
 export default async function AdminDashboard({ params }: AdminDashboardProps) {
   const user = await requireAdminOrSuperAdmin()
-  const currentOrg = getCurrentOrganization(user, params.orgSlug)
+  const { orgSlug } = await params
+  const currentOrg = getCurrentOrganization(user, orgSlug)
   
   if (!currentOrg) {
     notFound()
@@ -130,7 +131,7 @@ export default async function AdminDashboard({ params }: AdminDashboardProps) {
           </p>
         </div>
         <Button asChild>
-          <Link href={`/admin/${params.orgSlug}/tickets/new`}>
+          <Link href={`/admin/${orgSlug}/tickets/new`}>
             <Plus className="mr-2 h-4 w-4" />
             Nuovo Ticket
           </Link>
@@ -173,7 +174,7 @@ export default async function AdminDashboard({ params }: AdminDashboardProps) {
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <Link 
-                        href={`/admin/${params.orgSlug}/tickets/${ticket.id}`}
+                        href={`/admin/${orgSlug}/tickets/${ticket.id}`}
                         className="font-medium text-sm hover:underline"
                       >
                         {ticket.title}
@@ -220,7 +221,7 @@ export default async function AdminDashboard({ params }: AdminDashboardProps) {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <Link 
-                          href={`/admin/${params.orgSlug}/tickets/${ticket.id}`}
+                          href={`/admin/${orgSlug}/tickets/${ticket.id}`}
                           className="font-medium text-sm hover:underline"
                         >
                           {ticket.title}
